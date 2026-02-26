@@ -21,3 +21,8 @@ ultralytics>=8.1.0          # YOLOv8; auto-downloads yolov8n.pt weights on first
 # PyTorch — listed explicitly so you can swap in the CUDA variant (see above)
 torch>=2.2.0
 torchvision>=0.17.0
+
+# Telegram alerting
+python-dotenv>=1.0.0        # Loads secrets from .env file into os.environ
+# requests is already installed as a transitive dep of ultralytics — listed for clarity
+requests>=2.31.0

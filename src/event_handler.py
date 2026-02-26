@@ -23,6 +23,7 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(__file__))
 import config
+import notifier
 
 # ────────────────────────────────────────────────────────────────────────────
 # Set up a dedicated file logger (separate from print() statements)
@@ -127,6 +128,9 @@ class EventHandler:
         self._person_present: bool  = False  # True while someone is in the frame
         self._last_seen_time: float = 0.0    # last time a person was detected
 
+        # Notify phone that the camera has started
+        notifier.send_session_start()
+
     # ── public API ────────────────────────────────────────────────────────
 
     def handle(self, frame, detections: list) -> bool:
@@ -181,6 +185,7 @@ class EventHandler:
             )
             self._active_clip = None
         self._logger.info("Security camera session ended.")
+        notifier.send_session_end()
 
     # ── private helpers ───────────────────────────────────────────────────
 
@@ -214,3 +219,7 @@ class EventHandler:
             self._logger.info(
                 f"Recording clip ({config.CLIP_DURATION_S}s) → {clip_path}"
             )
+
+        # ── Telegram alert (non-blocking, runs in background thread) ───────
+        # Uses the same frame so the photo on your phone matches the snapshot.
+        notifier.send_alert(frame, detections, iso_ts.replace("T", " ").replace("Z", " UTC"))

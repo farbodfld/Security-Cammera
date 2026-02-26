@@ -48,8 +48,8 @@ desktop.ini
 *.swo
 
 # ─── Environment variables / secrets ──────────────────────────────────────
-.env
-.env.*
+.env                # real credentials — never commit
+!.env.example       # template is safe to share
 secrets.py
 
 # ─── Ultralytics run artifacts ────────────────────────────────────────────
