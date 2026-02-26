@@ -1,0 +1,56 @@
+# ─── Python ───────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ─── Virtual environments ─────────────────────────────────────────────────
+.venv/
+venv/
+env/
+ENV/
+
+# ─── Model weights (large binaries — download on first run) ───────────────
+models/*.pt
+models/*.pth
+models/*.onnx
+models/*.weights
+
+# ─── Runtime outputs (user-specific, can be large) ────────────────────────
+logs/
+outputs/
+
+# ─── Jupyter ──────────────────────────────────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb
+
+# ─── OS clutter ───────────────────────────────────────────────────────────
+# Windows
+Thumbs.db
+desktop.ini
+# macOS
+.DS_Store
+.AppleDouble
+# Linux
+*~
+
+# ─── IDE / editor ─────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.suo
+*.user
+*.swp
+*.swo
+
+# ─── Environment variables / secrets ──────────────────────────────────────
+.env
+.env.*
+secrets.py
+
+# ─── Ultralytics run artifacts ────────────────────────────────────────────
+runs/

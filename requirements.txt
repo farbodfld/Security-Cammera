@@ -1,0 +1,23 @@
+# ──────────────────────────────────────────────────────────────────────────
+# Security Camera — Python dependencies
+# ──────────────────────────────────────────────────────────────────────────
+#
+# Install everything at once:
+#   pip install -r requirements.txt
+#
+# GPU (NVIDIA CUDA) — install PyTorch with CUDA support FIRST:
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+# Then install the rest of this file.
+#
+# CPU-only — skip the CUDA torch install above; pip will pull a CPU torch automatically.
+# ──────────────────────────────────────────────────────────────────────────
+
+# Computer-vision / capture
+opencv-python>=4.9.0        # Webcam capture, drawing, VideoWriter
+
+# YOLOv8 — includes torch as a dependency (CPU build by default)
+ultralytics>=8.1.0          # YOLOv8; auto-downloads yolov8n.pt weights on first run
+
+# PyTorch — listed explicitly so you can swap in the CUDA variant (see above)
+torch>=2.2.0
+torchvision>=0.17.0
