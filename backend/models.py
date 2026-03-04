@@ -34,10 +34,12 @@ class Device(Base):
     agent_version = Column(String, nullable=True)
     
     armed = Column(Boolean, default=True, nullable=False)
-    threshold = Column(Float, default=0.5, nullable=False)
+    confidence_threshold = Column(Float, default=0.5, nullable=False)
+    snapshot_enabled = Column(Boolean, default=True, nullable=False)
     cooldown_sec = Column(Integer, default=5, nullable=False)
     control_mode = Column(String, default=ControlMode.BOTH.value, nullable=False)
-    
+    headless = Column(Boolean, default=False, nullable=False)
+
     last_seen_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
 
@@ -87,7 +89,8 @@ class TelegramOTP(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     otp_code = Column(String, unique=True, index=True, nullable=False)
-    chat_id = Column(String, nullable=False)
+    chat_id = Column(String, nullable=False, default="")
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # set when OTP is for a specific user
     expires_at = Column(DateTime, nullable=False)
     used = Column(Boolean, default=False, nullable=False)
 

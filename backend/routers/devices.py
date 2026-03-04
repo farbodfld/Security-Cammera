@@ -51,7 +51,7 @@ def create_pair_code(current_user: models.User = Depends(security.get_current_us
         db.rollback()
         raise HTTPException(status_code=500, detail="Error generating pair code. Please try again.")
     
-    return {"pair_code": code, "expires_in": 600}
+    return {"pair_code": code, "expires_at": expires_at}
 
 @router.post("/devices/pair", response_model=schemas.DevicePairResponse)
 def pair_device(pair_request: schemas.DevicePairRequest, db: Session = Depends(database.get_db)):

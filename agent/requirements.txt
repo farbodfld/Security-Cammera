@@ -1,28 +1,19 @@
-# ──────────────────────────────────────────────────────────────────────────
-# Security Camera — Python dependencies
-# ──────────────────────────────────────────────────────────────────────────
-#
-# Install everything at once:
-#   pip install -r requirements.txt
-#
-# GPU (NVIDIA CUDA) — install PyTorch with CUDA support FIRST:
-#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
-# Then install the rest of this file.
-#
-# CPU-only — skip the CUDA torch install above; pip will pull a CPU torch automatically.
-# ──────────────────────────────────────────────────────────────────────────
+# Security Camera Agent — Python dependencies
+# Install: pip install -r requirements.txt
 
-# Computer-vision / capture
-opencv-python>=4.9.0        # Webcam capture, drawing, VideoWriter
+# ── Computer vision ────────────────────────────────────────────────────────────
+opencv-python>=4.9.0
+ultralytics>=8.2.0          # YOLOv8
 
-# YOLOv8 — includes torch as a dependency (CPU build by default)
-ultralytics>=8.1.0          # YOLOv8; auto-downloads yolov8n.pt weights on first run
+# ── Backend communication ──────────────────────────────────────────────────────
+requests>=2.32.0
+websocket-client>=1.7.0     # WebSocket connection to backend
 
-# PyTorch — listed explicitly so you can swap in the CUDA variant (see above)
-torch>=2.2.0
-torchvision>=0.17.0
+# ── Configuration & utilities ─────────────────────────────────────────────────
+python-dotenv>=1.0.0
+colorama>=0.4.6             # Colored terminal output (optional)
 
-# Telegram alerting
-python-dotenv>=1.0.0        # Loads secrets from .env file into os.environ
-# requests is already installed as a transitive dep of ultralytics — listed for clarity
-requests>=2.31.0
+# ── CUDA / GPU (optional) ─────────────────────────────────────────────────────
+# Uncomment the correct line for your GPU to enable hardware acceleration.
+# Run: pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+# torch>=2.3.0

@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "C:\Users\farbo\OneDrive\Desktop\Security Cammera\agent\src\main.py", line 31, in <module>
+    from api_client    import APIClient
+  File "C:\Users\farbo\OneDrive\Desktop\Security Cammera\agent\src\api_client.py", line 19, in <module>
+    import websocket
+ModuleNotFoundError: No module named 'websocket'

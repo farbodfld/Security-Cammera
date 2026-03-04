@@ -1,0 +1,14 @@
+2026-03-04T21:59:30Z  INFO  api_client  Connecting to WebSocket: ws://127.0.0.1:8000/ws/agent
+2026-03-04T21:59:30Z  INFO  websocket  Websocket connected
+2026-03-04T21:59:30Z  INFO  api_client  WebSocket connected — sending hello
+2026-03-04T21:59:30Z  INFO  api_client  WS init: armed=True, config={'confidence_threshold': 0.5, 'snapshot_enabled': True, 'cooldown_sec': 5, 'control_mode': 'BOTH'}
+2026-03-04T21:59:32+0000  INFO  PERSON DETECTED | count=1 | confidences=[80%]
+2026-03-04T21:59:32Z  INFO  security_cam  PERSON DETECTED | count=1 | confidences=[80%]
+2026-03-04T21:59:32+0000  INFO  Snapshot saved \u2192 C:\Users\farbo\OneDrive\Desktop\Security Cammera\agent\outputs\snapshots\snapshot_2026-03-04T21-59-32Z.jpg
+2026-03-04T21:59:32Z  INFO  security_cam  Snapshot saved \u2192 C:\Users\farbo\OneDrive\Desktop\Security Cammera\agent\outputs\snapshots\snapshot_2026-03-04T21-59-32Z.jpg
+2026-03-04T21:59:32+0000  INFO  Recording clip (8s) \u2192 C:\Users\farbo\OneDrive\Desktop\Security Cammera\agent\outputs\clips\clip_2026-03-04T21-59-32Z.mp4
+2026-03-04T21:59:32Z  INFO  security_cam  Recording clip (8s) \u2192 C:\Users\farbo\OneDrive\Desktop\Security Cammera\agent\outputs\clips\clip_2026-03-04T21-59-32Z.mp4
+2026-03-04T21:59:32Z  INFO  event_handler  Event reported \u2192 id=a64b7307-f8d0-4b33-8785-a0040a4d28fb
+2026-03-04T21:59:32Z  INFO  event_handler  Snapshot uploaded \u2192 event_id=a64b7307-f8d0-4b33-8785-a0040a4d28fb
+2026-03-04T21:59:38Z  INFO  api_client  WS set_state: armed=False
+2026-03-04T21:59:38Z  INFO  api_client  Disarmed remotely via WebSocket. Shutting down agent...

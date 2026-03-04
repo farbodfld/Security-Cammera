@@ -24,6 +24,8 @@ models/*.weights
 # ─── Runtime outputs (user-specific, can be large) ────────────────────────
 logs/
 outputs/
+media/
+*.db
 
 # ─── Jupyter ──────────────────────────────────────────────────────────────
 .ipynb_checkpoints/
@@ -50,6 +52,7 @@ desktop.ini
 # ─── Environment variables / secrets ──────────────────────────────────────
 # real credentials — never commit
 .env
+device_credentials.json
 # template is safe to share
 !.env.example
 secrets.py

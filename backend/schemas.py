@@ -17,7 +17,7 @@ class Token(BaseModel):
 
 class PairCodeResponse(BaseModel):
     pair_code: str
-    expires_in: int
+    expires_at: datetime
 
 class DevicePairRequest(BaseModel):
     pair_code: str
@@ -33,19 +33,25 @@ class DeviceResponse(BaseModel):
     id: int
     name: Optional[str]
     armed: bool
-    threshold: float
+    confidence_threshold: float
+    snapshot_enabled: bool
     cooldown_sec: int
     control_mode: str
-    last_seen_at: datetime
-    status: str
+    headless: bool
+    last_seen_at: Optional[datetime] = None
+    created_at: datetime
+    online: bool = False
 
     model_config = ConfigDict(from_attributes=True)
 
 class DeviceUpdateRequest(BaseModel):
+    name: Optional[str] = None
     armed: Optional[bool] = None
-    threshold: Optional[float] = None
+    confidence_threshold: Optional[float] = None
+    snapshot_enabled: Optional[bool] = None
     cooldown_sec: Optional[int] = None
     control_mode: Optional[ControlMode] = None
+    headless: Optional[bool] = None
 
 class EventCreateRequest(BaseModel):
     event_type: str = "PERSON"
@@ -53,7 +59,7 @@ class EventCreateRequest(BaseModel):
     happened_at: datetime
 
 class EventCreateResponse(BaseModel):
-    event_id: str
+    id: str
 
 class SnapshotUploadResponse(BaseModel):
     success: bool
@@ -62,11 +68,10 @@ class SnapshotUploadResponse(BaseModel):
 class EventResponse(BaseModel):
     id: str
     device_id: int
-    event_type: str
     confidence: float
     happened_at: datetime
     created_at: datetime
-    image_url: Optional[str] = None
+    image_filename: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 

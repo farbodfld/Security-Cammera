@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "C:\Users\farbo\OneDrive\Desktop\Security Cammera\agent\src\main.py", line 23, in <module>
+    import cv2
+ModuleNotFoundError: No module named 'cv2'
+ERROR conda.cli.main_run:execute(124): `conda run python src/main.py --headless` failed. (See above for error)

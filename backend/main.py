@@ -4,6 +4,9 @@ import logging
 from database import engine, Base
 from routers import auth, devices, dashboard, events, telegram, ws
 
+from fastapi.staticfiles import StaticFiles
+import os
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -19,6 +22,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Create media directory if it doesn't exist
+os.makedirs("media/events", exist_ok=True)
+app.mount("/media", StaticFiles(directory="media"), name="media")
 
 # Include Routers
 app.include_router(auth.router)
