@@ -23,8 +23,8 @@ A production-grade, self-hosted AI security camera system. Uses a laptop webcam 
 | Component | Tech | Directory |
 |---|---|---|
 | Agent | Python 3.11, OpenCV, YOLOv8, websocket-client | `agent/` |
-| Backend | FastAPI, SQLAlchemy, SQLite, httpx | `backend/` |
-| Dashboard | Next.js 16, TypeScript, pure CSS | `dashboard/` |
+| Backend | FastAPI, SQLAlchemy, SQLite, websocket-client | `backend/` |
+| Dashboard | Next.js 15, TypeScript, pure CSS | `dashboard/` |
 
 ---
 
@@ -83,6 +83,12 @@ python src/main.py
 python src/main.py --headless
 ```
 
+### 4. Remote Control & Spawning
+The system supports **Remote Arming**:
+- If a paired agent is offline, clicking **Arm** in the dashboard will automatically spawn the agent process in the background on the host machine.
+- **Headless Toggle**: In **Devices → Settings**, you can toggle "Headless Mode". When enabled, remote starts will be completely invisible (no GUI or CMD window).
+- **Auto-Sync**: The agent automatically arms itself when it connects to the server and cleans up its process when disarmed via the dashboard.
+
 ---
 
 ## Telegram Bot Setup
@@ -116,6 +122,12 @@ python src/main.py --headless
 | `Q` | Quit |
 | `Space` | Pause / Resume |
 | `+` / `-` | Increase / decrease confidence threshold |
+
+---
+
+## Event Management
+- **Snapshot History**: View a chronological timeline of all detected persons.
+- **Delete All**: Use the "🗑️ Delete All" button to instantly wipe all events and delete their associated image files from the server's disk.
 
 ---
 
@@ -162,8 +174,8 @@ Security Cammera/
         │   └── dashboard/
         │       ├── layout.tsx
         │       ├── page.tsx       # Overview + stat cards
-        │       ├── devices/       # Pair, arm/disarm, settings modal
-        │       ├── events/        # Timeline + snapshot viewer
+        │       ├── devices/       # Pair, arm/disarm, settings (Headless toggle)
+        │       ├── events/        # Timeline + snapshot viewer, Delete All
         │       └── telegram/      # OTP linking + command reference
         ├── components/
         │   └── Sidebar.tsx
