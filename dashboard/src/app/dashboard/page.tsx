@@ -52,6 +52,33 @@ export default function OverviewPage() {
                 ))}
             </div>
 
+            {/* Onboarding banner — shown only when no devices are registered */}
+            {devices.length === 0 && (
+                <div className="card mb-4" style={{
+                    display: 'flex', alignItems: 'center', gap: 20,
+                    padding: '20px 24px',
+                    border: '1px solid rgba(99,102,241,0.5)',
+                    background: 'rgba(79,70,229,0.08)',
+                }}>
+                    <span style={{ fontSize: 38, flexShrink: 0 }}>🚀</span>
+                    <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: 700, marginBottom: 4 }}>
+                            No devices yet
+                        </div>
+                        <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+                            Add your first camera device to start monitoring.
+                        </div>
+                    </div>
+                    <a
+                        href="/dashboard/setup"
+                        className="btn-primary"
+                        style={{ flexShrink: 0, textDecoration: 'none' }}
+                    >
+                        Add Device
+                    </a>
+                </div>
+            )}
+
             {/* Devices quick view */}
             <div className="card mb-4">
                 <div className="flex items-center justify-between mb-4">

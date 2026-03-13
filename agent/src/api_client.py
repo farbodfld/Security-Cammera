@@ -12,6 +12,7 @@ Handles:
 """
 
 import json
+import platform
 import threading
 import time
 import logging
@@ -60,17 +61,28 @@ class APIClient:
         """Set the device token used for all authenticated requests."""
         self._token = token
 
-    def pair_device(self, pair_code: str) -> tuple[bool, str | None]:
+    def pair_device(
+        self, pair_code: str, device_name: str = "My Camera"
+    ) -> tuple[bool, str | None, str]:
         """
         Call POST /devices/pair with the given pair_code.
-        Returns (True, device_token) on success, or (False, None) on failure.
+
+        Returns a 3-tuple:
+          (True,  device_token, "")             on success
+          (False, None,         detail_string)   on failure
+
+        detail_string values:
+          "PAIR_CODE_INVALID" — code not found
+          "PAIR_CODE_EXPIRED" — code past expiry
+          "network"           — connection / timeout error
+          "SERVER_ERROR"      — unexpected backend response
         """
         url = f"{self.server_url}/devices/pair"
         payload = {
             "pair_code": pair_code,
-            "device_name": "Camera Agent",
-            "platform": "desktop",
-            "agent_version": "1.0.0"
+            "device_name": device_name,
+            "platform": platform.system(),   # "Windows" / "Darwin" / "Linux"
+            "agent_version": "1.1.0",
         }
         try:
             resp = requests.post(
@@ -78,15 +90,27 @@ class APIClient:
                 json=payload,
                 timeout=self.REQUEST_TIMEOUT,
             )
-            if resp.status_code == 200:
+            if resp.status_code in (200, 201):
                 token = resp.json().get("device_token")
-                return (True, token)
+                return (True, token, "")
             else:
-                logger.error(f"Pair failed [{resp.status_code}]: {resp.text}")
-                return (False, None)
+                # Backend returns a detail string in the JSON body
+                detail = "SERVER_ERROR"
+                try:
+                    detail = resp.json().get("detail", "SERVER_ERROR")
+                except Exception:
+                    pass
+                logger.error("Pair failed [%d]: %s", resp.status_code, resp.text)
+                return (False, None, detail)
+        except requests.Timeout:
+            logger.error("Pair request timed out")
+            return (False, None, "network")
+        except requests.ConnectionError as e:
+            logger.error("Pair connection error: %s", e)
+            return (False, None, "network")
         except requests.RequestException as e:
-            logger.error(f"Pair request error: {e}")
-            return (False, None)
+            logger.error("Pair request error: %s", e)
+            return (False, None, "network")
 
     def post_event(self, confidence: float, happened_at: datetime) -> int | None:
         """

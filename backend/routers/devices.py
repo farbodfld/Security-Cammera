@@ -62,10 +62,10 @@ def pair_device(pair_request: schemas.DevicePairRequest, db: Session = Depends(d
     ).with_for_update().first() # atomically lock row
 
     if not pair_code_entry:
-        raise HTTPException(status_code=400, detail="Invalid or expired pair code")
+        raise HTTPException(status_code=400, detail="PAIR_CODE_INVALID")
     
     if datetime.now(timezone.utc) > pair_code_entry.expires_at.replace(tzinfo=timezone.utc):
-        raise HTTPException(status_code=400, detail="Pair code has expired")
+        raise HTTPException(status_code=400, detail="PAIR_CODE_EXPIRED")
 
     # Success: atomic swap
     pair_code_entry.used = True

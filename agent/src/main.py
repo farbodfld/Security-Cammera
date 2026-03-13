@@ -1,14 +1,14 @@
 """
 main.py — Entry point for the Security Camera Agent.
 
-Run with:
-    python src/main.py --server-url http://<host>:8000 --pair-code <code>
-    python src/main.py                                  # after pairing
+First-run (no saved credentials):
+    App shows a GUI pairing screen automatically.
 
-Options:
-    --pair-code    Pair this agent with the backend (first-time setup)
-    --server-url   Backend URL (default: http://127.0.0.1:8000)
-    --headless     Run without the OpenCV preview window (for background service)
+After pairing (credentials saved):
+    App skips GUI and goes straight to monitoring.
+
+Developer / CLI path (bypasses GUI entirely):
+    python src/main.py --pair-code SC-XXXXXX [--server-url URL] [--headless]
 """
 
 import sys
@@ -78,53 +78,90 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Security Camera Agent")
     parser.add_argument(
         "--pair-code", type=str, default=None,
-        help="Pair code (OTP) shown in the dashboard",
+        help="Pair code (OTP) shown in the dashboard — developer/CLI path",
     )
     parser.add_argument(
-        "--server-url", type=str, default="http://127.0.0.1:8000",
-        help="Backend server URL  (default: http://127.0.0.1:8000)",
+        "--server-url", type=str, default=None,
+        help="Backend server URL (overrides saved URL; default: reads from credentials)",
     )
     parser.add_argument(
         "--headless", action="store_true",
-        help="Disable the OpenCV preview window",
+        help="Disable the OpenCV preview window and system tray (background service mode)",
     )
     args = parser.parse_args()
 
-    # ── Credentials ──────────────────────────────────────────────────────────
-    cfg_mgr    = ConfigManager()
-    api_client = APIClient(args.server_url)
+    cfg_mgr = ConfigManager()
 
+    # ── Resolve server URL ─────────────────────────────────────────────────────────
+    saved_token, saved_url = cfg_mgr.get_credentials()
+    server_url = args.server_url or saved_url
+
+    # ── CLI path (developer) ─────────────────────────────────────────────────────────
     if args.pair_code:
-        print(f"[INFO] Pairing with {args.server_url} …")
-        ok, token = api_client.pair_device(args.pair_code)
+        print(f"[INFO] CLI pairing with {server_url} …")
+        api_client = APIClient(server_url)
+        ok, token, detail = api_client.pair_device(args.pair_code)
         if not ok or not token:
-            print("[ERROR] Pairing failed. Check the code and server URL.")
+            msg = {
+                "PAIR_CODE_INVALID": "Pair code not recognised.",
+                "PAIR_CODE_EXPIRED": "Pair code has expired.",
+                "network":           "Cannot reach the server.",
+            }.get(detail, "Pairing failed.")
+            print(f"[ERROR] {msg}")
             sys.exit(1)
-        cfg_mgr.save_token(token)
+        cfg_mgr.save_credentials(token, server_url)
         api_client.set_token(token)
-        print("[INFO] Pairing successful! Starting camera …")
-    else:
-        token = cfg_mgr.get_token()
-        if not token:
-            print(
-                "[ERROR] Agent is not paired.\n"
-                "        Run:  python src/main.py --pair-code <CODE> --server-url <URL>"
-            )
-            sys.exit(1)
-        api_client.set_token(token)
-        print(f"[INFO] Loaded credentials. Connecting to {args.server_url} …")
+        print("[INFO] CLI pairing successful! Starting camera …")
 
-    # ── Start WebSocket (daemon thread) ───────────────────────────────────────
+    # ── GUI / normal-user path ───────────────────────────────────────────────────────
+    else:
+        if not saved_token:
+            # First run — show pairing screen
+            from gui import PairingWindow
+            win = PairingWindow(default_server=server_url)
+            token = win.run()
+            if not token:
+                print("[INFO] Setup cancelled by user.")
+                sys.exit(0)
+            # Reload credentials that the GUI just saved
+            token, server_url = cfg_mgr.get_credentials()
+        else:
+            token = saved_token
+
+        api_client = APIClient(server_url)
+        api_client.set_token(token)
+        print(f"[INFO] Loaded credentials. Connecting to {server_url} …")
+
+    # ── System tray ───────────────────────────────────────────────────────────────
+    tray_mgr = None
+    if not args.headless:
+        from tray import start_tray
+        tray_mgr = start_tray(on_quit=lambda: os._exit(0))
+
+    # ── Start WebSocket (daemon thread) ─────────────────────────────────────────────────
     api_client.start_websocket()
 
-    # ── Initialise core components ────────────────────────────────────────────
+    # ── Initialise core components ──────────────────────────────────────────────────────
     detector      = PersonDetector()
     event_handler = EventHandler(api_client=api_client)
     fps_counter   = FPSCounter(window=30)
 
     # Let armed-state changes from the backend update the event handler live
+    def _on_armed_change(armed: bool) -> None:
+        setattr(event_handler, "_armed", armed)
+        if tray_mgr:
+            tray_mgr.update_state(armed=armed, connected=True)
+
+    def _on_ws_connected() -> None:
+        if tray_mgr:
+            tray_mgr.update_state(armed=api_client.armed, connected=True)
+
+    def _on_ws_disconnected() -> None:
+        if tray_mgr:
+            tray_mgr.update_state(armed=api_client.armed, connected=False)
+
     api_client.register_callbacks(
-        on_armed_change  = lambda armed: setattr(event_handler, "_armed", armed),
+        on_armed_change  = _on_armed_change,
         on_config_change = lambda cfg: event_handler.apply_config(cfg),
     )
 

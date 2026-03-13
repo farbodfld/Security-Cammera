@@ -13,6 +13,11 @@ websocket-client>=1.7.0     # WebSocket connection to backend
 python-dotenv>=1.0.0
 colorama>=0.4.6             # Colored terminal output (optional)
 
+# ── GUI & system tray (new — required for packaged app) ───────────────────────
+customtkinter>=5.2.0        # Modern dark-mode UI for pairing screen
+pystray>=0.19.5             # System tray icon (Windows/macOS/Linux)
+Pillow>=10.3.0              # Image rendering for tray icon
+
 # ── CUDA / GPU (optional) ─────────────────────────────────────────────────────
 # Uncomment the correct line for your GPU to enable hardware acceleration.
 # Run: pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
