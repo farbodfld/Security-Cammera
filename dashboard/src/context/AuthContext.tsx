@@ -6,12 +6,14 @@ import { useRouter } from 'next/navigation';
 interface AuthCtx {
     token: string | null;
     login: (email: string, password: string) => Promise<void>;
+    googleLogin: (token: string) => Promise<void>;
     logout: () => void;
 }
 
 const AuthContext = createContext<AuthCtx>({
     token: null,
     login: async () => { },
+    googleLogin: async () => { },
     logout: () => { },
 });
 
@@ -31,6 +33,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         router.push('/dashboard');
     };
 
+    const googleLogin = async (googleToken: string) => {
+        // We'll add this to the api lib next
+        const { access_token }: TokenResponse = await (api as any).googleLogin(googleToken);
+        setToken(access_token);
+        localStorage.setItem('token', access_token);
+        router.push('/dashboard');
+    };
+
     const logout = () => {
         setToken(null);
         localStorage.removeItem('token');
@@ -38,7 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     return (
-        <AuthContext.Provider value={{ token, login, logout }}>
+        <AuthContext.Provider value={{ token, login, googleLogin, logout }}>
             {children}
         </AuthContext.Provider>
     );

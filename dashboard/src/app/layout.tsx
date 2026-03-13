@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
+import Script from 'next/script';
 
 export const metadata: Metadata = {
   title: 'SecureCam Dashboard',
@@ -12,6 +13,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         <AuthProvider>{children}</AuthProvider>
+        <Script 
+          src="https://accounts.google.com/gsi/client" 
+          strategy="beforeInteractive" 
+        />
       </body>
     </html>
   );

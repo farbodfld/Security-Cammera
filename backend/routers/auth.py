@@ -43,3 +43,28 @@ def login(user: schemas.UserLogin, db: Session = Depends(database.get_db)):
         expires_delta=timedelta(minutes=security.ACCESS_TOKEN_EXPIRE_MINUTES)
     )
     return {"access_token": access_token, "token_type": "bearer"}
+
+@router.post("/google", response_model=schemas.Token)
+def google_auth(request: schemas.GoogleAuthRequest, db: Session = Depends(database.get_db)):
+    # 1. Verify Google Token
+    idinfo = security.verify_google_token(request.token)
+    email = idinfo['email']
+    
+    # 2. Find or Create User
+    db_user = db.query(models.User).filter(models.User.email == email).first()
+    if not db_user:
+        # Create a new user but with a random/null password since they use Google
+        import secrets
+        random_pw = secrets.token_urlsafe(32)
+        hashed_password = security.get_password_hash(random_pw)
+        db_user = models.User(email=email, password_hash=hashed_password)
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
+    
+    # 3. Issue our own JWT
+    access_token = security.create_access_token(
+        data={"sub": db_user.email},
+        expires_delta=timedelta(minutes=security.ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
+    return {"access_token": access_token, "token_type": "bearer"}

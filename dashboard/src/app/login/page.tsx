@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
+import GoogleLoginButton from '@/components/GoogleLoginButton';
 
 export default function LoginPage() {
     const { login } = useAuth();
@@ -39,6 +40,8 @@ export default function LoginPage() {
 
                 <h1 className="auth-title">Welcome back</h1>
                 <p className="auth-subtitle">Sign in to your dashboard</p>
+
+                <GoogleLoginButton />
 
                 {error && <div className="alert alert-error">{error}</div>}
 

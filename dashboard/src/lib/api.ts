@@ -43,6 +43,12 @@ export const api = {
       body: JSON.stringify({ email, password }),
     }),
 
+  googleLogin: (token: string) =>
+    req<TokenResponse>('/auth/google', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    }),
+
   // Devices
   listDevices: (token: string) =>
     req<Device[]>('/devices', {}, token),

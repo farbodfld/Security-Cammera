@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { api } from '@/lib/api';
+import GoogleLoginButton from '@/components/GoogleLoginButton';
 
 export default function RegisterPage() {
     const router = useRouter();
@@ -44,6 +45,8 @@ export default function RegisterPage() {
 
                 <h1 className="auth-title">Create account</h1>
                 <p className="auth-subtitle">Get started in seconds</p>
+
+                <GoogleLoginButton />
 
                 {error && <div className="alert alert-error">{error}</div>}
                 {success && <div className="alert alert-success">{success}</div>}
