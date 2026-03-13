@@ -26,10 +26,6 @@ jobs:
             artifact_name: SecuraCam-macOS.zip
             dist_path: agent/dist/SecuraCam-macOS.zip
 
-          - os: ubuntu-latest
-            label: Linux
-            artifact_name: SecuraCam-Linux.AppImage
-            dist_path: agent/dist/SecuraCam-Linux.AppImage
 
     runs-on: ${{ matrix.os }}
     name: Build (${{ matrix.label }})
@@ -74,52 +70,6 @@ jobs:
         working-directory: agent/dist
         run: zip -r SecuraCam-macOS.zip SecuraCam.app
 
-      # ── Linux ─────────────────────────────────────────────────────────────────
-      - name: Install Linux system dependencies
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y \
-            libgl1 libglib2.0-0 \
-            libayatana-appindicator3-1 gir1.2-ayatanaappindicator3-0.1 \
-            xvfb wget fuse
-
-      - name: Build (Linux) — directory for AppImage
-        if: runner.os == 'Linux'
-        working-directory: agent
-        run: pyinstaller build/SecuraCam.spec --clean --distpath dist/
-
-      - name: Package Linux AppImage
-        if: runner.os == 'Linux'
-        working-directory: agent
-        run: |
-          # Download appimagetool
-          wget -q \
-            https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage \
-            -O appimagetool
-          chmod +x appimagetool
-
-          # Build AppDir structure
-          mkdir -p AppDir/usr/bin AppDir/usr/share/icons
-          cp -r dist/SecuraCam/* AppDir/usr/bin/
-          [ -f build/icons/icon.png ] && cp build/icons/icon.png AppDir/SecuraCam.png
-
-          # Desktop entry
-          cat > AppDir/SecuraCam.desktop << 'EOF'
-          [Desktop Entry]
-          Name=SecuraCam
-          Exec=SecuraCam
-          Icon=SecuraCam
-          Type=Application
-          Categories=Utility;
-          Comment=Security camera monitoring agent
-          EOF
-
-          # Symlink AppRun
-          ln -sf usr/bin/SecuraCam AppDir/AppRun
-
-          # Build AppImage
-          ARCH=x86_64 ./appimagetool AppDir dist/SecuraCam-Linux.AppImage
 
       # ── Upload artifact ───────────────────────────────────────────────────────
       - name: Upload build artifact
@@ -152,6 +102,5 @@ jobs:
           files: |
             dist/SecuraCam-Windows.exe/SecuraCam-Windows.exe
             dist/SecuraCam-macOS.zip/SecuraCam-macOS.zip
-            dist/SecuraCam-Linux.AppImage/SecuraCam-Linux.AppImage
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
