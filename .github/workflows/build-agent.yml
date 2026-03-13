@@ -18,7 +18,7 @@ jobs:
         include:
           - os: windows-latest
             label: Windows
-            artifact_name: SecuraCam-Windows.exe
+            artifact_name: SecuraCam-Windows
             dist_path: agent/dist/SecuraCam.exe
 
           - os: macos-latest
@@ -100,7 +100,7 @@ jobs:
         with:
           generate_release_notes: true
           files: |
-            dist/SecuraCam-Windows.exe/SecuraCam-Windows.exe
+            dist/SecuraCam-Windows/SecuraCam.exe
             dist/SecuraCam-macOS.zip/SecuraCam-macOS.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
