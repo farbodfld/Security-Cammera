@@ -111,7 +111,7 @@ jobs:
           Exec=SecuraCam
           Icon=SecuraCam
           Type=Application
-          Categories=Utility;System;
+          Categories=Utility;
           Comment=Security camera monitoring agent
           EOF
 

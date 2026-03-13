@@ -50,7 +50,7 @@ if sys.platform == 'win32':
         strip=False,
         upx=True,
         console=False,              # no terminal window for end users
-        # icon='icons/icon.ico',
+        icon='build/icons/icon.ico',
     )
 
 # ── macOS: .app bundle (LSUIElement = tray-only, no Dock icon) ───────────────
@@ -63,14 +63,14 @@ elif sys.platform == 'darwin':
         strip=False,
         upx=False,                  # UPX unreliable on Apple Silicon
         console=False,
-        # icon='icons/icon.icns',
+        icon='build/icons/icon.png', # Using PNG as fallback for macOS since no icns yet
     )
     coll = COLLECT(exe, a.binaries, a.zipfiles, a.datas,
                    strip=False, upx=False, name='SecuraCam')
     app = BUNDLE(
         coll,
         name='SecuraCam.app',
-        # icon='icons/icon.icns',
+        icon='build/icons/icon.png',
         bundle_identifier='com.securacam.agent',
         info_plist={
             'CFBundleShortVersionString': '1.1.0',
@@ -91,7 +91,7 @@ else:
         strip=True,
         upx=True,
         console=False,
-        # icon='icons/icon.png',
+        icon='build/icons/icon.png',
     )
     coll = COLLECT(exe, a.binaries, a.zipfiles, a.datas,
                    strip=True, upx=True, name='SecuraCam')
