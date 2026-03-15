@@ -47,6 +47,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pyinstaller
+        env:
+          SECURACAM_SERVER: ${{ vars.SECURACAM_SERVER }}
 
       # Pre-download YOLO model so it is bundled into the binary
       - name: Download YOLO model
@@ -58,12 +60,16 @@ jobs:
         if: runner.os == 'Windows'
         working-directory: agent
         run: pyinstaller build/SecuraCam.spec --clean --distpath dist/
+        env:
+          SECURACAM_SERVER: ${{ vars.SECURACAM_SERVER }}
 
       # ── macOS ────────────────────────────────────────────────────────────────
       - name: Build (macOS) — .app bundle
         if: runner.os == 'macOS'
         working-directory: agent
         run: pyinstaller build/SecuraCam.spec --clean --distpath dist/
+        env:
+          SECURACAM_SERVER: ${{ vars.SECURACAM_SERVER }}
 
       - name: Zip .app bundle (macOS)
         if: runner.os == 'macOS'
