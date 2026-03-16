@@ -19,7 +19,7 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI(title="Security Camera Mother System API")
 
 # Production CORS setup
-ALLOWED_ORIGINS = os.environ.get("ALLOWED_ORIGINS", "*").split(",")
+ALLOWED_ORIGINS = [o.strip().rstrip("/") for o in os.environ.get("ALLOWED_ORIGINS", "*").split(",")]
 
 app.add_middleware(
     CORSMiddleware,
