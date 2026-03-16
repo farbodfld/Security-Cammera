@@ -59,7 +59,7 @@ def verify_google_token(token: str):
     
     # We use Google Client ID from environment variables
     # If not set, verification will fail with a clear error
-    GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
+    GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "").strip() or None
     if not GOOGLE_CLIENT_ID:
         raise HTTPException(
             status_code=500,
