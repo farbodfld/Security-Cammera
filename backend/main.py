@@ -1,11 +1,14 @@
 from dotenv import load_dotenv
 load_dotenv()
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 import logging
-from database import engine, Base
+from database import engine, Base, get_db
 from routers import auth, devices, dashboard, events, telegram, ws
+from sqlalchemy.orm import Session
+from sqlalchemy import text
 
 from fastapi.staticfiles import StaticFiles
 import os
@@ -33,13 +36,29 @@ app.add_middleware(
 )
 
 @app.get("/")
-def health_check():
-    return {"status": "ok", "database": engine.url.drivername, "origins": ALLOWED_ORIGINS}
+def health_check(db: Session = Depends(get_db)):
+    try:
+        db.execute(text("SELECT 1"))
+        return {
+            "status": "ok", 
+            "database": "connected", 
+            "driver": engine.url.drivername,
+            "origins": ALLOWED_ORIGINS
+        }
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={"status": "error", "message": str(e)}
+        )
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):
     logger.error(f"Global error: {exc}", exc_info=True)
-    return {"detail": str(exc)}
+    return JSONResponse(
+        status_code=500,
+        content={"detail": str(exc)}
+    )
 
 # Create media directory if it doesn't exist
 os.makedirs("media/events", exist_ok=True)
