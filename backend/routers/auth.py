@@ -8,6 +8,9 @@ from security import *
 from database import *
 import schemas, models, security, database
 
+import logging
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/register", response_model=schemas.Token)
@@ -46,14 +49,20 @@ def login(user: schemas.UserLogin, db: Session = Depends(database.get_db)):
 
 @router.post("/google", response_model=schemas.Token)
 def google_auth(request: schemas.GoogleAuthRequest, db: Session = Depends(database.get_db)):
+    logger.info(f"Starting Google auth for token: {request.token[:10]}...")
     # 1. Verify Google Token
-    idinfo = security.verify_google_token(request.token)
-    email = idinfo['email']
+    try:
+        idinfo = security.verify_google_token(request.token)
+        email = idinfo['email']
+        logger.info(f"Google token verified for email: {email}")
+    except Exception as e:
+        logger.error(f"Google token verification failed: {e}")
+        raise
     
     # 2. Find or Create User
     db_user = db.query(models.User).filter(models.User.email == email).first()
     if not db_user:
-        # Create a new user but with a random/null password since they use Google
+        logger.info(f"Creating new user for email: {email}")
         import secrets
         random_pw = secrets.token_urlsafe(32)
         hashed_password = security.get_password_hash(random_pw)

@@ -10,7 +10,10 @@ from routers import auth, devices, dashboard, events, telegram, ws
 from fastapi.staticfiles import StaticFiles
 import os
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 # Initialize database
@@ -28,6 +31,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.get("/")
+def health_check():
+    return {"status": "ok", "database": engine.url.drivername, "origins": ALLOWED_ORIGINS}
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request, exc):
+    logger.error(f"Global error: {exc}", exc_info=True)
+    return {"detail": str(exc)}
 
 # Create media directory if it doesn't exist
 os.makedirs("media/events", exist_ok=True)
