@@ -18,7 +18,7 @@ _NEW_PATH    = Path.home() / ".securacam" / "credentials.json"
 _LEGACY_PATH = Path(os.path.dirname(__file__)).parent / "device_credentials.json"
 
 # Default server — overridden by env var at build time
-_DEFAULT_SERVER = os.environ.get("SECURACAM_SERVER", "http://127.0.0.1:8000")
+_DEFAULT_SERVER = os.environ.get("SECURACAM_SERVER", "https://securecam-la7o.onrender.com")
 
 
 class ConfigManager:
