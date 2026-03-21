@@ -99,7 +99,7 @@ class PairingWindow:
         # Status label
         self._status_lbl = ctk.CTkLabel(
             r, text="", font=("Inter", 12), wraplength=360)
-        self._status_lbl.pack(pady=(10, 0))
+        self._status_lbl.pack(pady=(4, 0))
 
         # Pair button
         self._btn = ctk.CTkButton(
@@ -108,7 +108,7 @@ class PairingWindow:
             font=("Inter", 14, "bold"),
             command=self._on_pair,
         )
-        self._btn.pack(pady=16)
+        self._btn.pack(pady=(12, 16))
 
     # ──────────────────────────────────────────────────────────────────────────
     # Event handlers
@@ -117,11 +117,13 @@ class PairingWindow:
     def _toggle_advanced(self) -> None:
         if self._advanced_visible:
             self._adv_frame.pack_forget()
+            self.root.geometry("440x420")
             self._advanced_visible = False
         else:
             self._adv_frame.pack(padx=44, fill="x", pady=(4, 0))
             self._url_label.pack(anchor="w")
-            self._url_entry.pack(pady=(2, 0))
+            self._url_entry.pack(pady=(2, 6))
+            self.root.geometry("440x500")
             self._advanced_visible = True
 
     def _on_pair(self) -> None:
