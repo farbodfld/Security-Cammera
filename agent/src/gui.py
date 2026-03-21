@@ -18,7 +18,7 @@ from config_manager import ConfigManager
 from api_client import APIClient
 
 # Default server — set via env var at build time or admin config
-_DEFAULT_SERVER = os.environ.get("SECURACAM_SERVER", "http://127.0.0.1:8000")
+_DEFAULT_SERVER = os.environ.get("SECURACAM_SERVER", "https://securecam-la7o.onrender.com")
 
 
 class PairingWindow:
