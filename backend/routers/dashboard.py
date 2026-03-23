@@ -158,9 +158,9 @@ async def update_device(
     return d_dict
 
 
-# ── DELETE /dashboard/devices/{id} ──────────────────────────────────────────
+# ── DELETE /devices/{id} ──────────────────────────────────────────────────────
 
-@router.delete("/dashboard/devices/{device_id}")
+@router.delete("/devices/{device_id}")
 def delete_device(
     device_id: int,
     current_user: models.User = Depends(security.get_current_user),

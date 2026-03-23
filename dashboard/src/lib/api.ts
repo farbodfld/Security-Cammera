@@ -80,7 +80,7 @@ export const api = {
     }, token),
 
   deleteDevice: (token: string, id: number) =>
-    req<{ success: boolean; message: string }>(`/dashboard/devices/${id}`, {
+    req<{ success: boolean; message: string }>(`/devices/${id}`, {
       method: 'DELETE',
     }, token),
 };
