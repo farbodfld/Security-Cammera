@@ -10,12 +10,12 @@ const NAV = [
     { href: '/dashboard/telegram', label: 'Telegram', icon: '✈' },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
     const pathname = usePathname();
     const { logout } = useAuth();
 
     return (
-        <aside className="sidebar">
+        <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
             <div className="sidebar-logo">
                 <div style={{
                     width: 30, height: 30,
@@ -37,6 +37,7 @@ export default function Sidebar() {
                         key={item.href}
                         href={item.href}
                         className={`nav-link ${pathname === item.href ? 'active' : ''}`}
+                        onClick={onClose}
                     >
                         <span style={{ fontSize: 16 }}>{item.icon}</span>
                         {item.label}

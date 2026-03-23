@@ -5,22 +5,63 @@ import { api, Device, ControlMode } from '@/lib/api';
 
 const MODES: ControlMode[] = ['BOTH', 'DASHBOARD_ONLY', 'TELEGRAM_ONLY'];
 
+const DL_LINKS = [
+    {
+        label: 'Windows (.exe)',
+        href: process.env.NEXT_PUBLIC_DL_WINDOWS ?? '#',
+        icon: '🪟',
+        available: !!process.env.NEXT_PUBLIC_DL_WINDOWS,
+    },
+    {
+        label: 'macOS (.app)',
+        href: process.env.NEXT_PUBLIC_DL_MACOS ?? '#',
+        icon: '🍎',
+        available: !!process.env.NEXT_PUBLIC_DL_MACOS,
+    },
+    {
+        label: 'Linux (AppImage)',
+        href: process.env.NEXT_PUBLIC_DL_LINUX ?? '#',
+        icon: '🐧',
+        available: !!process.env.NEXT_PUBLIC_DL_LINUX,
+    },
+];
+
+const STEPS = [
+    { n: 1, title: 'Download', icon: '⬇️' },
+    { n: 2, title: 'Open App', icon: '🖥️' },
+    { n: 3, title: 'Enter Code', icon: '🔑' },
+    { n: 4, title: 'Done!', icon: '✅' },
+];
+
 export default function DevicesPage() {
     const { token } = useAuth();
     const [devices, setDevices] = useState<Device[]>([]);
     const [loading, setLoading] = useState(true);
+    
+    // Add Device Steps State
+    const [showSetup, setShowSetup] = useState(false);
+    const [step, setStep] = useState(1);
     const [pairCode, setPairCode] = useState<string | null>(null);
-    const [pairExpiry, setPairExpiry] = useState<string | null>(null);
+    const [expiresAt, setExpiresAt] = useState<Date | null>(null);
+    const [secondsLeft, setSecondsLeft] = useState(0);
     const [genLoading, setGenLoading] = useState(false);
+    const [genError, setGenError] = useState('');
+
     const [editing, setEditing] = useState<Device | null>(null);
     const [saving, setSaving] = useState(false);
+    const [deleting, setDeleting] = useState(false);
     const [error, setError] = useState('');
 
     const load = useCallback(async () => {
         if (!token) return;
-        const d = await api.listDevices(token);
-        setDevices(d);
-        setLoading(false);
+        try {
+            const d = await api.listDevices(token);
+            setDevices(d);
+        } catch (e) {
+            console.error('Failed to load devices:', e);
+        } finally {
+            setLoading(false);
+        }
     }, [token]);
 
     useEffect(() => {
@@ -29,22 +70,38 @@ export default function DevicesPage() {
         return () => clearInterval(interval);
     }, [load]);
 
+    // Countdown timer for setup
+    useEffect(() => {
+        if (!expiresAt) return;
+        const tick = () => {
+            const s = Math.max(0, Math.floor((expiresAt.getTime() - Date.now()) / 1000));
+            setSecondsLeft(s);
+        };
+        tick();
+        const id = setInterval(tick, 1000);
+        return () => clearInterval(id);
+    }, [expiresAt]);
+
+    const startSetup = () => {
+        setShowSetup(true);
+        setStep(1);
+        setPairCode(null);
+    };
+
     const generatePairCode = async () => {
         if (!token) return;
         setGenLoading(true);
+        setGenError('');
         try {
-            const { pair_code, expires_at } = await api.generatePairCode(token);
-            setPairCode(pair_code);
-            setPairExpiry(expires_at);
+            const data = await api.generatePairCode(token);
+            setPairCode(data.pair_code);
+            setExpiresAt(new Date(data.expires_at));
+            setStep(3);
+        } catch (e: any) {
+            setGenError(e.message || 'Failed to generate code');
         } finally {
             setGenLoading(false);
         }
-    };
-
-    const toggleArmed = async (device: Device) => {
-        if (!token) return;
-        await api.updateDevice(token, device.id, { armed: !device.armed });
-        load();
     };
 
     const saveEdit = async () => {
@@ -69,6 +126,34 @@ export default function DevicesPage() {
         }
     };
 
+    const handleDelete = async () => {
+        if (!token || !editing) return;
+        if (!confirm(`Are you sure you want to remove "${editing.name || `Device #${editing.id}`}"?`)) return;
+        
+        setDeleting(true);
+        setError('');
+        try {
+            await api.deleteDevice(token, editing.id);
+            setEditing(null);
+            load();
+        } catch (e: any) {
+            setError(e.message || 'Deletion failed');
+        } finally {
+            setDeleting(false);
+        }
+    };
+
+    const stepCardStyle = (active: boolean): React.CSSProperties => ({
+        flex: 1,
+        padding: '12px 8px',
+        borderRadius: 12,
+        textAlign: 'center',
+        background: active ? 'var(--accent, #4f46e5)' : 'var(--surface, #1e1b4b)',
+        opacity: active ? 1 : 0.4,
+        transition: 'all .3s',
+        color: 'white',
+    });
+
     if (loading) return <div style={{ color: 'var(--text-muted)', padding: 40 }}>Loading…</div>;
 
     return (
@@ -78,31 +163,107 @@ export default function DevicesPage() {
                     <h1>Devices</h1>
                     <p>Manage and control your camera agents</p>
                 </div>
-                <button className="btn btn-primary" onClick={generatePairCode} disabled={genLoading}>
-                    {genLoading ? 'Generating…' : '+ Add Device'}
-                </button>
+                {!showSetup && (
+                    <button className="btn btn-primary" onClick={startSetup}>
+                        + Add Device
+                    </button>
+                )}
             </div>
 
-            {/* Pair Code Banner */}
-            {pairCode && (
-                <div className="card mb-4" style={{ borderColor: 'var(--brand)', background: 'rgba(108,99,255,0.05)' }}>
-                    <h3 style={{ fontWeight: 700, marginBottom: 8 }}>Pair a New Device</h3>
-                    <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>
-                        Run the agent on your machine with this code. Expires at {pairExpiry ? new Date(pairExpiry.endsWith('Z') ? pairExpiry : pairExpiry + 'Z').toLocaleTimeString() : '—'}.
-                    </p>
-                    <div style={{
-                        fontFamily: 'monospace', fontSize: 28, letterSpacing: 6,
-                        padding: '16px 24px', background: 'var(--bg-surface)',
-                        borderRadius: 8, display: 'inline-block', color: '#a5b4fc', fontWeight: 700,
-                    }}>
-                        {pairCode}
+            {/* Step-by-Step Setup UI */}
+            {showSetup && (
+                <div className="card mb-6" style={{ maxWidth: 680, margin: '0 auto 24px' }}>
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 style={{ fontWeight: 700, fontSize: 18 }}>Add a New Device</h2>
+                        <button className="btn btn-outline btn-sm" onClick={() => setShowSetup(false)}>Cancel</button>
                     </div>
-                    <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 12 }}>
-                        <code style={{ background: 'var(--bg-surface)', padding: '3px 8px', borderRadius: 4 }}>
-                            python src/main.py --pair-code {pairCode} --server-url http://&lt;your-server&gt;:8000
-                        </code>
-                    </p>
-                    <button className="btn btn-outline btn-sm mt-4" onClick={() => setPairCode(null)}>Dismiss</button>
+
+                    {/* Step tracker */}
+                    <div style={{ display: 'flex', gap: 8, marginBottom: 32 }}>
+                        {STEPS.map(s => (
+                            <div key={s.n} style={stepCardStyle(step >= s.n)}>
+                                <div style={{ fontSize: 22 }}>{s.icon}</div>
+                                <div style={{ fontSize: 10, marginTop: 4, opacity: 0.8 }}>Step {s.n}</div>
+                                <div style={{ fontSize: 12, fontWeight: 600, marginTop: 2 }}>{s.title}</div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Step 1 — Download */}
+                    {step === 1 && (
+                        <div>
+                            <h3 style={{ fontWeight: 700, marginBottom: 16, fontSize: 15 }}>Step 1 — Download SecuraCam</h3>
+                            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 16 }}>
+                                {DL_LINKS.map(dl => (
+                                    <a
+                                        key={dl.label}
+                                        href={dl.available ? dl.href : undefined}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        style={{
+                                            display: 'flex', alignItems: 'center', gap: 8,
+                                            padding: '10px 18px', borderRadius: 10,
+                                            background: 'var(--surface-2, #1e1b4b)',
+                                            color: dl.available ? 'var(--text, #e2e8f0)' : 'var(--text-muted, #94a3b8)',
+                                            textDecoration: 'none', fontWeight: 600, fontSize: 13,
+                                            border: '1px solid var(--border, #312e81)',
+                                            cursor: dl.available ? 'pointer' : 'not-allowed',
+                                            opacity: dl.available ? 1 : 0.5,
+                                        }}
+                                    >
+                                        <span style={{ fontSize: 18 }}>{dl.icon}</span>
+                                        {dl.label}
+                                    </a>
+                                ))}
+                            </div>
+                            <button className="btn-primary" onClick={() => setStep(2)}>I&apos;ve downloaded it →</button>
+                        </div>
+                    )}
+
+                    {/* Step 2 — Open App */}
+                    {step === 2 && (
+                        <div>
+                            <h3 style={{ fontWeight: 700, marginBottom: 10, fontSize: 15 }}>Step 2 — Open SecuraCam</h3>
+                            <p style={{ color: 'var(--text-muted)', fontSize: 14, lineHeight: 1.6, marginBottom: 16 }}>
+                                Double-click <strong>SecuraCam</strong> to launch it.
+                                A setup screen will appear asking for a pairing code.
+                            </p>
+                            <button className="btn-primary" onClick={generatePairCode} disabled={genLoading}>
+                                {genLoading ? 'Generating…' : 'Generate Pairing Code →'}
+                            </button>
+                            {genError && <p style={{ color: '#f87171', fontSize: 13, marginTop: 8 }}>{genError}</p>}
+                        </div>
+                    )}
+
+                    {/* Step 3 — Enter Code */}
+                    {step === 3 && pairCode && (
+                        <div>
+                            <h3 style={{ fontWeight: 700, marginBottom: 12, fontSize: 15 }}>Step 3 — Enter this code in the app</h3>
+                            <div style={{
+                                fontSize: 40, fontFamily: 'monospace', fontWeight: 900,
+                                letterSpacing: 8, color: '#a5b4fc', padding: '20px 0 12px',
+                            }}>{pairCode}</div>
+                            <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>
+                                {secondsLeft > 0
+                                    ? `⏱ Expires in ${secondsLeft}s — type this into the app and click "Pair Device".`
+                                    : '⚠ This code has expired.'}
+                            </p>
+                            <div className="flex gap-3">
+                                <button className="btn-secondary" onClick={generatePairCode} disabled={genLoading}>↻ New Code</button>
+                                <button className="btn-primary" onClick={() => setStep(4)}>Device is paired →</button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Step 4 — Done */}
+                    {step === 4 && (
+                        <div style={{ textAlign: 'center', padding: '24px 0' }}>
+                            <div style={{ fontSize: 56, marginBottom: 16 }}>✅</div>
+                            <h3 style={{ fontWeight: 700, marginBottom: 8 }}>Device Connected!</h3>
+                            <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 24 }}>Your camera is now monitoring.</p>
+                            <button className="btn-primary" onClick={() => setShowSetup(false)}>Finish</button>
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -111,13 +272,13 @@ export default function DevicesPage() {
                 <div className="card" style={{ textAlign: 'center', padding: 48 }}>
                     <div style={{ fontSize: 48, marginBottom: 12 }}>📷</div>
                     <h3 style={{ fontWeight: 700, marginBottom: 8 }}>No devices yet</h3>
-                    <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Click "Add Device" to generate a pair code.</p>
+                    <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Click "+ Add Device" to connect your first camera.</p>
                 </div>
             ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                     {devices.map(d => (
                         <div className="card" key={d.id} style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                            {/* Status dot */}
+                            {/* Status icon */}
                             <div style={{
                                 width: 44, height: 44, borderRadius: 10, background: 'var(--bg-surface)',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
@@ -140,26 +301,23 @@ export default function DevicesPage() {
                                     <span className={`badge ${d.armed ? 'badge-yellow' : 'badge-gray'}`}>
                                         {d.armed ? '🔒 Armed' : '🔓 Disarmed'}
                                     </span>
-                                    <span className="badge badge-purple" style={{ textTransform: 'none' }}>
-                                        {d.control_mode}
-                                    </span>
                                 </div>
                             </div>
 
                             {/* Actions */}
                             <div className="flex gap-2">
-                                <button
-                                    className={`btn btn-sm ${d.armed ? 'btn-outline' : 'btn-primary'}`}
-                                    onClick={() => toggleArmed(d)}
-                                >
-                                    {d.armed ? '🔓 Disarm' : '🔒 Arm'}
-                                </button>
                                 <button className="btn btn-outline btn-sm" onClick={() => setEditing({ ...d })}>
                                     Settings
                                 </button>
                             </div>
                         </div>
                     ))}
+                    
+                    <div style={{ padding: '12px 20px', borderRadius: 12, border: '1px dashed var(--border-color)', opacity: 0.6 }}>
+                         <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0, textAlign: 'center' }}>
+                            💡 <strong>Hint:</strong> To stop or quit an active camera agent, press <kbd style={{ background: '#333', padding: '2px 5px', borderRadius: 4, border: '1px solid #555' }}>Q</kbd> on your keyboard while the agent window is focused.
+                         </p>
+                    </div>
                 </div>
             )}
 
@@ -167,7 +325,19 @@ export default function DevicesPage() {
             {editing && (
                 <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setEditing(null)}>
                     <div className="modal">
-                        <h2 className="modal-title">Device Settings</h2>
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="modal-title" style={{ margin: 0 }}>Device Settings</h2>
+                            <button 
+                                onClick={handleDelete}
+                                disabled={deleting}
+                                style={{ 
+                                    background: 'none', border: 'none', color: '#f87171', 
+                                    cursor: 'pointer', fontSize: 12, textDecoration: 'underline' 
+                                }}
+                            >
+                                {deleting ? 'Removing...' : 'Remove Device'}
+                            </button>
+                        </div>
 
                         {error && <div className="alert alert-error">{error}</div>}
 

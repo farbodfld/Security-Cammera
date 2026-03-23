@@ -86,26 +86,6 @@ export default function TelegramPage() {
                             <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{t}</span>
                         </div>
                     ))}
-
-                    <hr className="divider" />
-
-                    <h4 style={{ fontWeight: 700, marginBottom: 8, fontSize: 13 }}>Alternative flow</h4>
-                    <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                        You can also generate an OTP here and send it to the bot instead.
-                    </p>
-                    <button className="btn btn-outline btn-sm mt-4" onClick={genOtp} disabled={genLoading}>
-                        {genLoading ? 'Generating…' : 'Generate OTP'}
-                    </button>
-                    {otp && (
-                        <div style={{
-                            marginTop: 12, fontFamily: 'monospace', fontSize: 24,
-                            letterSpacing: 6, color: '#a5b4fc', fontWeight: 700,
-                            background: 'var(--bg-surface)', padding: '10px 16px', borderRadius: 8,
-                        }}>{otp}</div>
-                    )}
-                    {expiry && <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 6 }}>
-                        Expires: {new Date(expiry).toLocaleTimeString()}
-                    </p>}
                 </div>
 
                 {/* Verify OTP (entered from bot) */}
@@ -156,10 +136,6 @@ export default function TelegramPage() {
                         {[
                             ['/start', 'Get a link code from the bot'],
                             ['/devices', 'List all your paired devices with status'],
-                            ['/arm', 'Arm your camera (shows menu if multiple devices)'],
-                            ['/arm 2', 'Arm device #2 from the /devices list'],
-                            ['/disarm', 'Disarm your camera'],
-                            ['/disarm 1', 'Disarm device #1'],
                         ].map(([cmd, desc]) => (
                             <tr key={cmd}>
                                 <td>

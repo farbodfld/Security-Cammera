@@ -156,3 +156,26 @@ async def update_device(
         d_dict['online'] = False
         
     return d_dict
+
+
+# ── DELETE /dashboard/devices/{id} ──────────────────────────────────────────
+
+@router.delete("/dashboard/devices/{device_id}")
+def delete_device(
+    device_id: int,
+    current_user: models.User = Depends(security.get_current_user),
+    db: Session = Depends(database.get_db),
+):
+    device = (
+        db.query(models.Device)
+        .filter(models.Device.id == device_id, models.Device.user_id == current_user.id)
+        .first()
+    )
+    if not device:
+        raise HTTPException(status_code=404, detail="Device not found")
+
+    # Events are tied via cascade in most setups, but let's be safe
+    db.query(models.Event).filter(models.Event.device_id == device.id).delete()
+    db.delete(device)
+    db.commit()
+    return {"success": True, "message": f"Device {device_id} removed."}

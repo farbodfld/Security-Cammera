@@ -34,8 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const googleLogin = async (googleToken: string) => {
-        // We'll add this to the api lib next
-        const { access_token }: TokenResponse = await (api as any).googleLogin(googleToken);
+        const { access_token } = await api.googleLogin(googleToken);
         setToken(access_token);
         localStorage.setItem('token', access_token);
         router.push('/dashboard');

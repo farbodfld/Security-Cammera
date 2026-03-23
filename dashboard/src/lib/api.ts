@@ -78,6 +78,11 @@ export const api = {
     req<{ otp: string; expires_at: string }>('/telegram/otp', {
       method: 'POST',
     }, token),
+
+  deleteDevice: (token: string, id: number) =>
+    req<{ success: boolean; message: string }>(`/dashboard/devices/${id}`, {
+      method: 'DELETE',
+    }, token),
 };
 
 // ── Types ─────────────────────────────────────────────────────────────────────
