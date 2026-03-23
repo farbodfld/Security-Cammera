@@ -243,11 +243,22 @@ export default function DevicesPage() {
                                 fontSize: 40, fontFamily: 'monospace', fontWeight: 900,
                                 letterSpacing: 8, color: '#a5b4fc', padding: '20px 0 12px',
                             }}>{pairCode}</div>
-                            <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>
+                            <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 24 }}>
                                 {secondsLeft > 0
                                     ? `⏱ Expires in ${secondsLeft}s — type this into the app and click "Pair Device".`
                                     : '⚠ This code has expired.'}
                             </p>
+                            
+                            <div style={{ 
+                                padding: '12px 16px', borderRadius: 10, background: 'rgba(245, 158, 11, 0.1)', 
+                                border: '1px solid rgba(245, 158, 11, 0.2)', color: '#f59e0b', fontSize: 12
+                            }}>
+                                <strong>💡 Troubleshooting</strong>: If the app says it cannot reach the server, 
+                                click <strong>Advanced Settings</strong> in the app and make sure the Server URL is set to:
+                                <div style={{ fontFamily: 'monospace', fontWeight: 700, marginTop: 4, background: 'rgba(0,0,0,0.2)', padding: '4px 8px', borderRadius: 4 }}>
+                                    https://securecam-la7o.onrender.com
+                                </div>
+                            </div>
                             <div className="flex gap-3">
                                 <button className="btn-secondary" onClick={generatePairCode} disabled={genLoading}>↻ New Code</button>
                                 <button className="btn-primary" onClick={() => setStep(4)}>Device is paired →</button>
